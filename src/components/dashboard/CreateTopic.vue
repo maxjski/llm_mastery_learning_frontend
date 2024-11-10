@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { extractTextFromFile } from '@/utils/fileUtils'
 import { generateTopicDraft } from '@/services/topicService'
 import type { TopicDraftResponse } from '@/services/topicService'
+import { useCourseStore } from '@/stores/courseStore'
 
 interface Source {
   id: string
@@ -24,7 +25,17 @@ const textTitle = ref('')
 
 const topicName = ref('')
 const isGenerating = ref(false)
-const topicDraft = ref<TopicDraftResponse | null>(null)
+
+const courseStore = useCourseStore()
+const selectedCourseId = ref<number | null>(null)
+
+const emit = defineEmits<{
+  'draft-generated': [draft: TopicDraftResponse]
+}>()
+
+onMounted(async () => {
+  await courseStore.fetchCourses()
+})
 
 const deleteSource = (id: string) => {
   sources.value = sources.value.filter(source => source.id !== id)
@@ -117,6 +128,11 @@ const confirmLink = async () => {
 }
 
 const generateTopic = async () => {
+  if (!selectedCourseId.value) {
+    alert('Please select a course')
+    return
+  }
+
   if (sources.value.length === 0) {
     alert('Please add at least one source before generating a topic')
     return
@@ -129,10 +145,11 @@ const generateTopic = async () => {
 
   isGenerating.value = true
   try {
-    // TODO: Replace with actual course ID from your app's context
-    const courseId = 1
-    const draft = await generateTopicDraft(courseId, topicName.value)
-    topicDraft.value = draft
+    const draft = await generateTopicDraft(
+      selectedCourseId.value,
+      topicName.value,
+    )
+    emit('draft-generated', draft)
   } catch (error) {
     alert(
       'Error generating topic: ' +
@@ -163,6 +180,19 @@ const generateTopic = async () => {
         >
       </p>
     </header>
+
+    <div class="course-selection">
+      <select v-model="selectedCourseId" class="course-dropdown" required>
+        <option value="" disabled selected>Select a course</option>
+        <option
+          v-for="course in courseStore.getCourseList"
+          :key="course.id"
+          :value="course.id"
+        >
+          {{ course.name }}
+        </option>
+      </select>
+    </div>
 
     <div class="topic-name-input">
       <input
@@ -282,38 +312,6 @@ const generateTopic = async () => {
       >
         {{ isGenerating ? 'Generating...' : 'Generate Topic' }}
       </button>
-    </div>
-
-    <div v-if="topicDraft" class="topic-draft">
-      <h3>Generated Topic Draft</h3>
-
-      <div class="draft-section">
-        <h4>Topic</h4>
-        <p>{{ topicDraft.topic.name }}</p>
-        <p>{{ topicDraft.topic.mastery_definition }}</p>
-      </div>
-
-      <div
-        class="draft-section"
-        v-for="skill in topicDraft.skills"
-        :key="skill.name"
-      >
-        <h4>Skill: {{ skill.name }}</h4>
-        <p>{{ skill.mastery_definition_of_skill }}</p>
-
-        <div class="sub-skills">
-          <div
-            v-for="subSkill in topicDraft.sub_skills.filter(
-              ss => ss.skill_id === skill.id,
-            )"
-            :key="subSkill.name"
-            class="sub-skill"
-          >
-            <h5>{{ subSkill.name }}</h5>
-            <p>{{ subSkill.content_to_master }}</p>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -580,40 +578,5 @@ h1 {
 .generate-button:not(:disabled):hover {
   background: #2563eb;
   transform: translateY(-1px);
-}
-
-.topic-draft {
-  margin-top: 2rem;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 16px;
-  padding: 1.5rem;
-}
-
-.draft-section {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-}
-
-.sub-skills {
-  margin-top: 1rem;
-}
-
-.sub-skill {
-  margin-top: 0.75rem;
-  padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 6px;
-}
-
-h4 {
-  margin: 0 0 0.5rem 0;
-  color: #3b82f6;
-}
-
-h5 {
-  margin: 0 0 0.5rem 0;
-  color: rgba(255, 255, 255, 0.9);
 }
 </style>

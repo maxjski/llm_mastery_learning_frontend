@@ -1,32 +1,44 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
+import type { TopicDraftResponse } from '@/services/topicService'
 
 export enum ActiveComponentEnum {
-  Decks = 'decks',
+  Courses = 'courses',
   Generate = 'generate',
   ManageDeck = 'manageDeck',
   ReviseDeck = 'reviseDeck',
+  EditDraft = 'editDraft',
 }
 
 export const useComponentStore = defineStore('component', {
   state: () => ({
-    activeComponent: ref<ActiveComponentEnum>(ActiveComponentEnum.Decks),
-    currentDeckId: ref<number | null>(null),
+    activeComponent: ref<ActiveComponentEnum>(ActiveComponentEnum.Courses),
+    currentCourseId: ref<number | null>(null),
+    currentDraft: ref<TopicDraftResponse | null>(null),
   }),
   getters: {
     getActiveComponent(state) {
       return state.activeComponent
     },
-    getCurrentDeckId(state) {
-      return state.currentDeckId
+    getCurrentCourseId(state) {
+      return state.currentCourseId
+    },
+    getCurrentDraft(state) {
+      return state.currentDraft
     },
   },
   actions: {
     setActiveComponent(component: ActiveComponentEnum) {
       this.activeComponent = component
     },
-    setCurrentDeckId(id: number) {
-      this.currentDeckId = id
+    setCurrentCourseId(id: number) {
+      this.currentCourseId = id
+    },
+    setCurrentDraft(draft: TopicDraftResponse | null) {
+      this.currentDraft = draft
+      this.activeComponent = draft
+        ? ActiveComponentEnum.EditDraft
+        : ActiveComponentEnum.Generate
     },
   },
 })

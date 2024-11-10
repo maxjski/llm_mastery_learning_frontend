@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import CreateTopic from '@/components/dashboard/CreateTopic.vue'
+import TopicDraftEditor from '@/components/dashboard/TopicDraftEditor.vue'
+import CoursesList from '@/components/dashboard/CoursesList.vue'
 import { useComponentStore, ActiveComponentEnum } from '@/stores/componentStore'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
+import type { TopicDraftResponse } from '@/services/topicService'
 
 const componentStore = useComponentStore()
 const authStore = useAuthStore()
@@ -12,6 +15,10 @@ function logout() {
   authStore.logout()
   router.push('/auth')
 }
+
+const handleDraftGenerated = (draft: TopicDraftResponse) => {
+  componentStore.setCurrentDraft(draft)
+}
 </script>
 
 <template>
@@ -19,14 +26,18 @@ function logout() {
     <header>
       <nav>
         <button
-          @click="componentStore.setActiveComponent(ActiveComponentEnum.Decks)"
+          @click="
+            componentStore.setActiveComponent(ActiveComponentEnum.Courses)
+          "
         >
-          Decks
+          Courses
         </button>
         <button
-          @click="
-            componentStore.setActiveComponent(ActiveComponentEnum.Generate)
-          "
+          @click="componentStore.setCurrentDraft(null)"
+          :class="{
+            active:
+              componentStore.getActiveComponent !== ActiveComponentEnum.Courses,
+          }"
         >
           Create Topic
         </button>
@@ -35,7 +46,21 @@ function logout() {
     </header>
 
     <main>
-      <CreateTopic />
+      <CreateTopic
+        v-if="
+          componentStore.getActiveComponent === ActiveComponentEnum.Generate
+        "
+        @draft-generated="handleDraftGenerated"
+      />
+      <TopicDraftEditor
+        v-if="
+          componentStore.getActiveComponent === ActiveComponentEnum.EditDraft
+        "
+        :draft="componentStore.getCurrentDraft!"
+      />
+      <CoursesList
+        v-if="componentStore.getActiveComponent === ActiveComponentEnum.Courses"
+      />
     </main>
   </div>
 </template>
@@ -113,5 +138,10 @@ main {
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+nav button.active {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
 }
 </style>

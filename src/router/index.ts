@@ -31,13 +31,11 @@ router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
   const isLoggedIn = authStore.getIsLoggedIn
 
-  // Handle protected routes
   if (to.meta.requiresAuth && !isLoggedIn) {
     next({ name: 'auth' })
     return
   }
 
-  // Handle guest-only routes (like login/register)
   if (to.meta.requiresGuest && isLoggedIn) {
     next({ name: 'dashboard' })
     return
