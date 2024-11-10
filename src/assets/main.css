@@ -1,0 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+:root {
+  /* ... existing root variables ... */
+
+  /* Update or add this font-family declaration */
+  --font-family-base: 'Inter', sans-serif;
+}
+
+/* ... existing styles ... */
+
+body {
+  /* ... other body styles ... */
+  font-family: var(--font-family-base);
+}
+
+/* ... rest of the file ... */
