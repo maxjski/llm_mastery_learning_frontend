@@ -5,7 +5,7 @@ import { RouterLink } from 'vue-router'
 <template>
   <main class="home">
     <div class="content">
-      <h1>flaish</h1>
+      <h1>LLM Supported Mastery Learning</h1>
       <RouterLink to="/auth" class="login-button">Login</RouterLink>
     </div>
   </main>

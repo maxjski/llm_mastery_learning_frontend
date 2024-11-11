@@ -2,8 +2,11 @@
 import { onMounted, ref as vueRef } from 'vue'
 import { useCourseStore } from '../../stores/courseStore'
 import { storeToRefs } from 'pinia'
+import { useComponentStore } from '@/stores/componentStore'
+import { ActiveComponentEnum } from '@/stores/componentStore'
 
 const courseStore = useCourseStore()
+const componentStore = useComponentStore()
 
 const { courseList, error, isLoading } = storeToRefs(courseStore)
 
@@ -34,8 +37,8 @@ const createCourse = async () => {
 }
 
 const selectCourse = (id: number) => {
-  console.log('Selected course:', id)
-  // TODO: Implement course selection logic
+  componentStore.setCurrentCourseId(id)
+  componentStore.setActiveComponent(ActiveComponentEnum.Examination)
 }
 
 const manageCourse = (id: number) => {

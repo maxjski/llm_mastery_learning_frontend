@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { extractTextFromFile } from '@/utils/fileUtils'
 import { generateTopicDraft } from '@/services/topicService'
-import type { TopicDraftResponse } from '@/services/topicService'
+import type { TopicDraft } from '@/types'
 import { useCourseStore } from '@/stores/courseStore'
 
 interface Source {
@@ -30,7 +30,7 @@ const courseStore = useCourseStore()
 const selectedCourseId = ref<number | null>(null)
 
 const emit = defineEmits<{
-  'draft-generated': [draft: TopicDraftResponse]
+  'draft-generated': [draft: TopicDraft]
 }>()
 
 onMounted(async () => {

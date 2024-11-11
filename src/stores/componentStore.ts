@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import type { TopicDraftResponse } from '@/services/topicService'
+import type { TopicDraft } from '@/types'
 
 export enum ActiveComponentEnum {
   Courses = 'courses',
@@ -8,13 +8,14 @@ export enum ActiveComponentEnum {
   ManageDeck = 'manageDeck',
   ReviseDeck = 'reviseDeck',
   EditDraft = 'editDraft',
+  Examination = 'examination',
 }
 
 export const useComponentStore = defineStore('component', {
   state: () => ({
     activeComponent: ref<ActiveComponentEnum>(ActiveComponentEnum.Courses),
     currentCourseId: ref<number | null>(null),
-    currentDraft: ref<TopicDraftResponse | null>(null),
+    currentDraft: ref<TopicDraft | null>(null),
   }),
   getters: {
     getActiveComponent(state) {
@@ -34,7 +35,7 @@ export const useComponentStore = defineStore('component', {
     setCurrentCourseId(id: number) {
       this.currentCourseId = id
     },
-    setCurrentDraft(draft: TopicDraftResponse | null) {
+    setCurrentDraft(draft: TopicDraft | null) {
       this.currentDraft = draft
       this.activeComponent = draft
         ? ActiveComponentEnum.EditDraft

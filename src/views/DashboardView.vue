@@ -2,10 +2,11 @@
 import CreateTopic from '@/components/dashboard/CreateTopic.vue'
 import TopicDraftEditor from '@/components/dashboard/TopicDraftEditor.vue'
 import CoursesList from '@/components/dashboard/CoursesList.vue'
+import Examination from '@/components/dashboard/Examination.vue'
 import { useComponentStore, ActiveComponentEnum } from '@/stores/componentStore'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-import type { TopicDraftResponse } from '@/services/topicService'
+import type { TopicDraft } from '@/types'
 
 const componentStore = useComponentStore()
 const authStore = useAuthStore()
@@ -16,7 +17,7 @@ function logout() {
   router.push('/auth')
 }
 
-const handleDraftGenerated = (draft: TopicDraftResponse) => {
+const handleDraftGenerated = (draft: TopicDraft) => {
   componentStore.setCurrentDraft(draft)
 }
 </script>
@@ -51,6 +52,11 @@ const handleDraftGenerated = (draft: TopicDraftResponse) => {
           componentStore.getActiveComponent === ActiveComponentEnum.Generate
         "
         @draft-generated="handleDraftGenerated"
+      />
+      <Examination
+        v-if="
+          componentStore.getActiveComponent === ActiveComponentEnum.Examination
+        "
       />
       <TopicDraftEditor
         v-if="
