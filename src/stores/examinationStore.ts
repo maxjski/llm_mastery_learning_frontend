@@ -1,15 +1,17 @@
 import { defineStore } from 'pinia'
 import type {
   UserQuestion,
+  QuestionCreate,
   QuestionAnswer,
   Confidence,
   ExaminationDraft,
+  ExaminationAnswers,
 } from '../types'
 import * as examinationService from '../services/examinationService'
 
 interface ExaminationState {
   questions: UserQuestion[]
-  answers: QuestionAnswer[]
+  examinationAnswers: ExaminationAnswers
   loading: boolean
   error: string | null
   draft: ExaminationDraft | null
@@ -18,7 +20,10 @@ interface ExaminationState {
 export const useExaminationStore = defineStore('examination', {
   state: (): ExaminationState => ({
     questions: [],
-    answers: [],
+    examinationAnswers: {
+      topic_id: 0,
+      answers: [],
+    },
     loading: false,
     error: null,
     draft: null,
@@ -26,31 +31,20 @@ export const useExaminationStore = defineStore('examination', {
 
   getters: {
     getQuestions: state => state.questions,
-    getAnswers: state => state.answers,
+    getExaminationAnswers: state => state.examinationAnswers,
     isLoading: state => state.loading,
+    getDraft: state => state.draft,
   },
 
   actions: {
-    async submitAnswer(
-      questionId: number,
-      answer: string,
-      confidence: Confidence,
-    ) {
+    async submitAnswers(answers: ExaminationAnswers) {
       this.loading = true
       try {
-        // Here you would typically make an API call
-        const newAnswer: QuestionAnswer = {
-          id: crypto.randomUUID(),
-          questionId,
-          answer,
-          confidence,
-          timestamp: new Date(),
-        }
-
-        this.answers.push(newAnswer)
-        return newAnswer
+        const examinationAnswers =
+          await examinationService.submitExaminationAnswers(answers)
+        this.examinationAnswers = examinationAnswers
       } catch (error) {
-        this.error = 'Failed to submit answer'
+        this.error = 'Failed to submit answers'
         throw error
       } finally {
         this.loading = false
@@ -62,10 +56,22 @@ export const useExaminationStore = defineStore('examination', {
       this.error = null
       try {
         const draft = await examinationService.generateExaminationDraft(topicId)
-        console.log('draft', draft)
-        this.draft = draft
-        this.questions = draft.questions
-        console.log('questions', this.questions)
+        console.log('draft at store ----------------------------')
+        console.log(draft)
+
+        const updated_draft = {
+          ...draft,
+          questions: draft.questions.map(question => ({
+            ...question,
+            id: Math.floor(Math.random() * 1000000),
+          })),
+        }
+
+        this.draft = updated_draft
+        this.questions = updated_draft.questions
+
+        console.log('draft ABSD', this.draft)
+        console.log('questions ABSD', this.questions)
       } catch (error) {
         this.error = 'Failed to fetch questions'
         throw error

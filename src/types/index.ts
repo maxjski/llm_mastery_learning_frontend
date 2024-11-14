@@ -121,13 +121,22 @@ export interface UserQuestion {
 }
 
 export interface QuestionAnswer {
-  id: string
-  questionId: number
+  id: number
+  sub_skill_id: number
+  sfia_level: number
+  question_type: string
+  question: string
   answer: string
-  confidence: Confidence
-  timestamp: Date
+  correct_answer: string
+  explanation: string
+  correct: boolean
 }
 
 export interface ExaminationDraft {
   questions: Question[]
+}
+
+export interface ExaminationAnswers {
+  topic_id: number
+  answers: QuestionAnswer[]
 }

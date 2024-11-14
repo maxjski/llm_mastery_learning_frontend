@@ -1,6 +1,10 @@
 import axios from 'axios'
 import { API_URL } from './config'
-import type { ExaminationDraft, UserQuestion } from '../types'
+import type {
+  ExaminationAnswers,
+  ExaminationDraft,
+  UserQuestion,
+} from '../types'
 
 const getAuthHeaders = () => {
   const authToken = localStorage.getItem('token')
@@ -21,6 +25,8 @@ export async function generateExaminationDraft(topicId: number) {
         headers: getAuthHeaders(),
       },
     )
+    console.log('draft at service ----------------------------')
+    console.log(response.data)
     return response.data
   } catch (error) {
     console.error('Error generating examination draft:', error)
@@ -28,18 +34,18 @@ export async function generateExaminationDraft(topicId: number) {
   }
 }
 
-export async function createExaminationFromDraft(draft: ExaminationDraft) {
+export async function submitExaminationAnswers(answers: ExaminationAnswers) {
   try {
-    const response = await axios.post<UserQuestion[]>(
-      `${API_URL}/examinations/create`,
-      draft,
+    const response = await axios.post<ExaminationAnswers>(
+      `${API_URL}/examinations/submit`,
+      answers,
       {
         headers: getAuthHeaders(),
       },
     )
     return response.data
   } catch (error) {
-    console.error('Error creating examination from draft:', error)
+    console.error('Error submitting examination answers:', error)
     throw error
   }
 }

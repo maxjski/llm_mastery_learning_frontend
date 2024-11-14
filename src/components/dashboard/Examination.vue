@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useExaminationStore } from '@/stores/examinationStore'
 import { useComponentStore } from '@/stores/componentStore'
+import type { ExaminationAnswers } from '@/types'
 
 type Confidence = 'very high' | 'high' | 'medium' | 'low' | 'none'
 
@@ -11,11 +12,15 @@ const currentAnswers = ref<Record<number, string>>({})
 const confidenceLevels = ref<Record<number, Confidence>>({})
 
 onMounted(async () => {
-  await examStore.fetchQuestions(componentStore.getCurrentCourseId)
+  await examStore.fetchQuestions(componentStore.getCurrentCourseId ?? 0)
+  console.log('questions ----------------------------')
+  console.log(examStore.getQuestions)
 })
 
 const submitAnswers = async () => {
   // Check if all questions have answers and confidence levels
+  console.log('draft ----------------------------')
+  console.log(examStore.getDraft)
   const questions = examStore.getQuestions
   for (const question of questions) {
     if (
@@ -29,18 +34,26 @@ const submitAnswers = async () => {
     }
   }
 
+  const answers: ExaminationAnswers = {
+    topic_id: componentStore.getCurrentCourseId ?? 0,
+    answers: examStore.getQuestions.map(question => ({
+      id: question.id,
+      sub_skill_id: question.sub_skill_id,
+      sfia_level: question.sfia_level,
+      question_type: question.question_type,
+      question: question.question_text,
+      answer: currentAnswers.value[question.id],
+      correct_answer: examStore.getDraft?.questions.find(
+        q => q.id === question.id,
+      )?.correct_answer,
+      explanation: '',
+      correct: false,
+    })),
+  }
+
   try {
-    // Submit all answers
-    for (const question of questions) {
-      await examStore.submitAnswer(
-        question.id,
-        currentAnswers.value[question.id],
-        confidenceLevels.value[question.id],
-      )
-    }
-    // Clear all inputs after submission
-    currentAnswers.value = {}
-    confidenceLevels.value = {}
+    await examStore.submitAnswers(answers)
+    // No need to capture explanations as they'll be in the store
   } catch (error) {
     alert('Failed to submit answers')
   }
@@ -59,6 +72,15 @@ const submitAnswers = async () => {
         v-for="question in examStore.getQuestions"
         :key="question.id"
         class="question-card"
+        :class="{
+          'correct-answer': examStore.getExaminationAnswers.answers.find(
+            a => a.id === question.id,
+          )?.correct,
+          'incorrect-answer':
+            examStore.getExaminationAnswers.answers.find(
+              a => a.id === question.id,
+            )?.correct === false,
+        }"
       >
         <h3>{{ question.question_text }}</h3>
 
@@ -80,6 +102,32 @@ const submitAnswers = async () => {
               <option value="none">None</option>
             </select>
           </div>
+        </div>
+
+        <div
+          v-if="
+            examStore.getExaminationAnswers.answers.find(
+              a => a.id === question.id,
+            )
+          "
+          class="explanation-section"
+        >
+          <div class="result-label">
+            {{
+              examStore.getExaminationAnswers.answers.find(
+                a => a.id === question.id,
+              )?.correct
+                ? '✓ Correct'
+                : '✗ Incorrect'
+            }}
+          </div>
+          <p class="explanation-text">
+            {{
+              examStore.getExaminationAnswers.answers.find(
+                a => a.id === question.id,
+              )?.explanation
+            }}
+          </p>
         </div>
       </div>
     </div>
@@ -123,6 +171,7 @@ h1 {
   border: 1px solid rgba(255, 255, 255, 0.1);
   width: 100%;
   box-sizing: border-box;
+  transition: all 0.3s ease;
 }
 
 .answer-section {
@@ -193,5 +242,40 @@ select:focus {
 .submit-button:not(:disabled):hover {
   background: #2563eb;
   transform: translateY(-1px);
+}
+
+.correct-answer {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.2);
+}
+
+.incorrect-answer {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.explanation-section {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.result-label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.correct-answer .result-label {
+  color: rgb(34, 197, 94);
+}
+
+.incorrect-answer .result-label {
+  color: rgb(239, 68, 68);
+}
+
+.explanation-text {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.8);
 }
 </style>
