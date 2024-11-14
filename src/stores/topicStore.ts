@@ -1,7 +1,12 @@
 // stores/topicStore.js
 import { defineStore } from 'pinia'
 import { transformTopicDraft } from '@/utils/topicDraftStructuring'
-import { createTopicFromDraft } from '@/services/topicService'
+import {
+  createTopicFromDraft,
+  getTopics,
+  apiDeleteTopic,
+  getSkills,
+} from '@/services/topicService'
 
 export const useTopicStore = defineStore('topic', {
   state: () => ({
@@ -11,9 +16,34 @@ export const useTopicStore = defineStore('topic', {
       skills: [],
     },
     isEditing: false,
+    loading: false,
+    error: null,
+    topicList: [],
+    skillList: [],
   }),
 
   actions: {
+    async fetchTopics(courseId: number) {
+      this.loading = true
+      try {
+        this.topicList = await getTopics(courseId)
+      } catch (error) {
+        this.error = 'Failed to fetch topic'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async deleteTopic(topicId: number) {
+      await apiDeleteTopic(topicId)
+      this.topicList = this.topicList.filter(topic => topic.id !== topicId)
+    },
+
+    async fetchSkills(topicId: number) {
+      this.skillList = await getSkills(topicId)
+    },
+
     initializeNewTopic() {
       this.topic = {
         name: '',

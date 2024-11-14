@@ -1,92 +1,98 @@
 <script setup lang="ts">
 import { onMounted, ref as vueRef } from 'vue'
-import { useCourseStore } from '../../stores/courseStore'
-import { storeToRefs } from 'pinia'
+import { useTopicStore } from '@/stores/topicStore'
 import { useComponentStore } from '@/stores/componentStore'
+import { storeToRefs } from 'pinia'
 import { ActiveComponentEnum } from '@/stores/componentStore'
 
-const courseStore = useCourseStore()
+const topicStore = useTopicStore()
 const componentStore = useComponentStore()
-
-const { courseList, error, isLoading } = storeToRefs(courseStore)
+const { skillList, error, loading: isLoading } = storeToRefs(topicStore)
 
 onMounted(async () => {
   try {
-    await courseStore.fetchCourses()
+    const topicId = componentStore.currentTopicId
+    await topicStore.fetchSkills(topicId)
   } catch (error) {
-    console.error('Failed to fetch courses')
+    console.error('Failed to fetch skills')
     console.error(error)
   }
 })
 
-const showNewCourseModal = vueRef(false)
-const newCourseName = vueRef('')
+const showNewSkillModal = vueRef(false)
+const newSkillName = vueRef('')
 
-const createCourse = async () => {
-  if (newCourseName.value.trim()) {
+const createSkill = async () => {
+  if (newSkillName.value.trim()) {
     try {
-      await courseStore.createCourse({
-        name: newCourseName.value.trim(),
-      })
-      showNewCourseModal.value = false
-      newCourseName.value = ''
+      // TODO: Implement createSkill in topicStore
+      showNewSkillModal.value = false
+      newSkillName.value = ''
     } catch {
-      console.error('Failed to create course')
+      console.error('Failed to create skill')
     }
   }
 }
 
-const selectCourse = (id: number) => {
-  componentStore.setCurrentCourseId(id)
-  componentStore.setActiveComponent(ActiveComponentEnum.Topics)
+const selectSkill = (id: number) => {
+  // TODO: Implement skill selection logic
+  console.log('Selected skill:', id)
 }
 
-const manageCourse = (id: number) => {
-  console.log('Managing course:', id)
-  // TODO: Implement course management logic
+const manageSkill = (id: number) => {
+  console.log('Managing skill:', id)
+  // TODO: Implement skill management logic
 }
 
-const deleteCourseHandler = async (courseId: number) => {
-  if (confirm('Are you sure you want to delete this course?')) {
+const deleteSkillHandler = async (skillId: number) => {
+  if (confirm('Are you sure you want to delete this skill?')) {
     try {
-      await courseStore.deleteCourse(courseId)
+      // TODO: Implement deleteSkill in topicStore
+      console.log('Deleting skill:', skillId)
     } catch (error) {
-      console.error('Error deleting course:', error)
+      console.error('Error deleting skill:', error)
     }
   }
+}
+
+const goBackToTopics = () => {
+  componentStore.setActiveComponent(ActiveComponentEnum.Topics)
 }
 </script>
 
 <template>
-  <div class="courses">
-    <!-- Add error display -->
+  <div class="skills">
     <div v-if="error" class="error-message">
       {{ error }}
-      <button @click="courseStore.clearError">Dismiss</button>
+      <button @click="topicStore.clearError">Dismiss</button>
     </div>
 
-    <!-- Add loading state -->
     <div v-if="isLoading" class="loading">Loading...</div>
 
-    <div class="courses-header">
-      <h2>Your Courses</h2>
-      <button @click="showNewCourseModal = true" class="add-course-btn">
-        Add New Course
+    <div class="skills-header">
+      <div class="header-left">
+        <button @click="goBackToTopics" class="back-btn">
+          ← Back to Topics
+        </button>
+        <h2>Skills</h2>
+      </div>
+      <button @click="showNewSkillModal = true" class="add-skill-btn">
+        Add New Skill
       </button>
     </div>
 
     <ul>
-      <li v-for="course in courseList" :key="course.id">
-        <div class="course-item">
-          <h3 class="course-title">{{ course.name }}</h3>
-          <div class="course-actions">
-            <button @click="selectCourse(course.id)" class="revise-btn">
+      <li v-for="skill in skillList" :key="skill.id">
+        <div class="skill-item">
+          <h3 class="skill-title">{{ skill.name }}</h3>
+          <div class="skill-actions">
+            <button @click="selectSkill(skill.id)" class="study-btn">
               Study
             </button>
-            <button @click="manageCourse(course.id)" class="manage-btn">
+            <button @click="manageSkill(skill.id)" class="manage-btn">
               Manage
             </button>
-            <button @click="deleteCourseHandler(course.id)" class="delete-btn">
+            <button @click="deleteSkillHandler(skill.id)" class="delete-btn">
               Delete
             </button>
           </div>
@@ -94,18 +100,18 @@ const deleteCourseHandler = async (courseId: number) => {
       </li>
     </ul>
 
-    <!-- New Course Modal -->
-    <div v-if="showNewCourseModal" class="modal-overlay">
+    <!-- New Skill Modal -->
+    <div v-if="showNewSkillModal" class="modal-overlay">
       <div class="modal">
-        <h3>Create New Course</h3>
+        <h3>Create New Skill</h3>
         <input
-          v-model="newCourseName"
-          placeholder="Enter course name"
-          @keyup.enter="createCourse"
+          v-model="newSkillName"
+          placeholder="Enter skill name"
+          @keyup.enter="createSkill"
         />
         <div class="modal-actions">
-          <button @click="createCourse" class="create-btn">Create</button>
-          <button @click="showNewCourseModal = false" class="cancel-btn">
+          <button @click="createSkill" class="create-btn">Create</button>
+          <button @click="showNewSkillModal = false" class="cancel-btn">
             Cancel
           </button>
         </div>
@@ -115,18 +121,38 @@ const deleteCourseHandler = async (courseId: number) => {
 </template>
 
 <style scoped>
-.courses {
+.skills {
   max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
   color: #fff;
 }
 
-.courses-header {
+.skills-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.back-btn {
+  background: transparent;
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+  background: rgba(59, 130, 246, 0.1);
 }
 
 h2 {
@@ -134,7 +160,7 @@ h2 {
   margin: 0;
 }
 
-.add-course-btn {
+.add-skill-btn {
   background: #3b82f6;
   color: white;
   padding: 0.75rem 1.5rem;
@@ -145,7 +171,7 @@ h2 {
   transition: all 0.2s ease;
 }
 
-.add-course-btn:hover {
+.add-skill-btn:hover {
   background: #2563eb;
   transform: translateY(-1px);
 }
@@ -157,7 +183,7 @@ ul {
   gap: 1rem;
 }
 
-.course-item {
+.skill-item {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
@@ -168,23 +194,23 @@ ul {
   transition: all 0.3s ease;
 }
 
-.course-item:hover {
+.skill-item:hover {
   background: rgba(255, 255, 255, 0.08);
   transform: translateY(-2px);
 }
 
-.course-title {
+.skill-title {
   margin: 0;
   font-size: 1.25rem;
   color: #fff;
 }
 
-.course-actions {
+.skill-actions {
   display: flex;
   gap: 0.75rem;
 }
 
-.course-actions button {
+.skill-actions button {
   padding: 0.5rem 1rem;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -193,13 +219,13 @@ ul {
   transition: all 0.2s ease;
 }
 
-.revise-btn {
+.study-btn {
   background: #3b82f6;
   color: white;
   border: none;
 }
 
-.revise-btn:hover {
+.study-btn:hover {
   background: #2563eb;
 }
 

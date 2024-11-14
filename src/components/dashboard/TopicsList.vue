@@ -1,92 +1,100 @@
 <script setup lang="ts">
 import { onMounted, ref as vueRef } from 'vue'
-import { useCourseStore } from '../../stores/courseStore'
-import { storeToRefs } from 'pinia'
+import { useTopicStore } from '@/stores/topicStore'
 import { useComponentStore } from '@/stores/componentStore'
+import { storeToRefs } from 'pinia'
 import { ActiveComponentEnum } from '@/stores/componentStore'
 
-const courseStore = useCourseStore()
+const topicStore = useTopicStore()
 const componentStore = useComponentStore()
-
-const { courseList, error, isLoading } = storeToRefs(courseStore)
+const { topicList, error, isLoading } = storeToRefs(topicStore)
 
 onMounted(async () => {
   try {
-    await courseStore.fetchCourses()
+    const courseId = componentStore.currentCourseId
+    await topicStore.fetchTopics(courseId)
   } catch (error) {
-    console.error('Failed to fetch courses')
+    console.error('Failed to fetch topics')
     console.error(error)
   }
 })
 
-const showNewCourseModal = vueRef(false)
-const newCourseName = vueRef('')
+const showNewTopicModal = vueRef(false)
+const newTopicName = vueRef('')
 
-const createCourse = async () => {
-  if (newCourseName.value.trim()) {
+const createTopic = async () => {
+  if (newTopicName.value.trim()) {
     try {
-      await courseStore.createCourse({
-        name: newCourseName.value.trim(),
+      await topicStore.createTopic({
+        name: newTopicName.value.trim(),
+        courseId: componentStore.currentCourseId,
       })
-      showNewCourseModal.value = false
-      newCourseName.value = ''
+      showNewTopicModal.value = false
+      newTopicName.value = ''
     } catch {
-      console.error('Failed to create course')
+      console.error('Failed to create topic')
     }
   }
 }
 
-const selectCourse = (id: number) => {
-  componentStore.setCurrentCourseId(id)
-  componentStore.setActiveComponent(ActiveComponentEnum.Topics)
+const selectTopic = (id: number) => {
+  componentStore.setCurrentTopicId(id)
+  componentStore.setActiveComponent(ActiveComponentEnum.Skills)
 }
 
-const manageCourse = (id: number) => {
-  console.log('Managing course:', id)
-  // TODO: Implement course management logic
+const manageTopic = (id: number) => {
+  console.log('Managing topic:', id)
+  // TODO: Implement topic management logic
 }
 
-const deleteCourseHandler = async (courseId: number) => {
-  if (confirm('Are you sure you want to delete this course?')) {
+const deleteTopicHandler = async (topicId: number) => {
+  if (confirm('Are you sure you want to delete this topic?')) {
     try {
-      await courseStore.deleteCourse(courseId)
+      await topicStore.deleteTopic(topicId)
     } catch (error) {
-      console.error('Error deleting course:', error)
+      console.error('Error deleting topic:', error)
     }
   }
+}
+
+const goBackToCourses = () => {
+  componentStore.setActiveComponent(ActiveComponentEnum.Courses)
 }
 </script>
 
 <template>
-  <div class="courses">
-    <!-- Add error display -->
+  <div class="topics">
     <div v-if="error" class="error-message">
       {{ error }}
-      <button @click="courseStore.clearError">Dismiss</button>
+      <button @click="topicStore.clearError">Dismiss</button>
     </div>
 
-    <!-- Add loading state -->
     <div v-if="isLoading" class="loading">Loading...</div>
 
-    <div class="courses-header">
-      <h2>Your Courses</h2>
-      <button @click="showNewCourseModal = true" class="add-course-btn">
-        Add New Course
+    <div class="topics-header">
+      <div class="header-left">
+        <button @click="goBackToCourses" class="back-btn">
+          ← Back to Courses
+        </button>
+        <h2>Topics</h2>
+      </div>
+      <button @click="showNewTopicModal = true" class="add-topic-btn">
+        Add New Topic
       </button>
     </div>
 
     <ul>
-      <li v-for="course in courseList" :key="course.id">
-        <div class="course-item">
-          <h3 class="course-title">{{ course.name }}</h3>
-          <div class="course-actions">
-            <button @click="selectCourse(course.id)" class="revise-btn">
+      <li v-for="topic in topicList" :key="topic.id">
+        <div class="topic-item">
+          <h3 class="topic-title">{{ topic.name }}</h3>
+          <div class="topic-actions">
+            <button @click="selectTopic(topic.id)" class="study-btn">
               Study
             </button>
-            <button @click="manageCourse(course.id)" class="manage-btn">
+            <button @click="manageTopic(topic.id)" class="manage-btn">
               Manage
             </button>
-            <button @click="deleteCourseHandler(course.id)" class="delete-btn">
+            <button @click="deleteTopicHandler(topic.id)" class="delete-btn">
               Delete
             </button>
           </div>
@@ -94,18 +102,18 @@ const deleteCourseHandler = async (courseId: number) => {
       </li>
     </ul>
 
-    <!-- New Course Modal -->
-    <div v-if="showNewCourseModal" class="modal-overlay">
+    <!-- New Topic Modal -->
+    <div v-if="showNewTopicModal" class="modal-overlay">
       <div class="modal">
-        <h3>Create New Course</h3>
+        <h3>Create New Topic</h3>
         <input
-          v-model="newCourseName"
-          placeholder="Enter course name"
-          @keyup.enter="createCourse"
+          v-model="newTopicName"
+          placeholder="Enter topic name"
+          @keyup.enter="createTopic"
         />
         <div class="modal-actions">
-          <button @click="createCourse" class="create-btn">Create</button>
-          <button @click="showNewCourseModal = false" class="cancel-btn">
+          <button @click="createTopic" class="create-btn">Create</button>
+          <button @click="showNewTopicModal = false" class="cancel-btn">
             Cancel
           </button>
         </div>
@@ -115,18 +123,38 @@ const deleteCourseHandler = async (courseId: number) => {
 </template>
 
 <style scoped>
-.courses {
+.topics {
   max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
   color: #fff;
 }
 
-.courses-header {
+.topics-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.back-btn {
+  background: transparent;
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+  background: rgba(59, 130, 246, 0.1);
 }
 
 h2 {
@@ -134,7 +162,7 @@ h2 {
   margin: 0;
 }
 
-.add-course-btn {
+.add-topic-btn {
   background: #3b82f6;
   color: white;
   padding: 0.75rem 1.5rem;
@@ -145,7 +173,7 @@ h2 {
   transition: all 0.2s ease;
 }
 
-.add-course-btn:hover {
+.add-topic-btn:hover {
   background: #2563eb;
   transform: translateY(-1px);
 }
@@ -157,7 +185,7 @@ ul {
   gap: 1rem;
 }
 
-.course-item {
+.topic-item {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
@@ -168,23 +196,23 @@ ul {
   transition: all 0.3s ease;
 }
 
-.course-item:hover {
+.topic-item:hover {
   background: rgba(255, 255, 255, 0.08);
   transform: translateY(-2px);
 }
 
-.course-title {
+.topic-title {
   margin: 0;
   font-size: 1.25rem;
   color: #fff;
 }
 
-.course-actions {
+.topic-actions {
   display: flex;
   gap: 0.75rem;
 }
 
-.course-actions button {
+.topic-actions button {
   padding: 0.5rem 1rem;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -193,13 +221,13 @@ ul {
   transition: all 0.2s ease;
 }
 
-.revise-btn {
+.study-btn {
   background: #3b82f6;
   color: white;
   border: none;
 }
 
-.revise-btn:hover {
+.study-btn:hover {
   background: #2563eb;
 }
 

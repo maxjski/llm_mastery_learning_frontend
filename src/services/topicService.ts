@@ -47,3 +47,48 @@ export async function createTopicFromDraft(draft: TopicDraft) {
     throw error
   }
 }
+
+interface TopicResponse {
+  name: string
+  mastery_definition: string
+  id: number
+  course_id: number
+  created_at: string
+}
+
+export async function getTopics(courseId: number) {
+  const response = await axios.get<TopicResponse[]>(
+    `${API_URL}/topic-generation/${courseId}`,
+    {
+      headers: getAuthHeaders(),
+    },
+  )
+  console.log(response.data)
+  return response.data
+}
+
+export async function apiDeleteTopic(topicId: number) {
+  const response = await axios.delete(
+    `${API_URL}/topic-generation/${topicId}`,
+    {
+      headers: getAuthHeaders(),
+    },
+  )
+
+  return response.data
+}
+
+interface SkillResponse {
+  id: number
+  name: string
+}
+
+export async function getSkills(topicId: number) {
+  const response = await axios.get<SkillResponse[]>(
+    `${API_URL}/skill/${topicId}`,
+    {
+      headers: getAuthHeaders(),
+    },
+  )
+  return response.data
+}

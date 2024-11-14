@@ -9,12 +9,15 @@ export enum ActiveComponentEnum {
   ReviseDeck = 'reviseDeck',
   EditDraft = 'editDraft',
   Examination = 'examination',
+  Topics = 'topics',
+  Skills = 'skills',
 }
 
 export const useComponentStore = defineStore('component', {
   state: () => ({
     activeComponent: ref<ActiveComponentEnum>(ActiveComponentEnum.Courses),
     currentCourseId: ref<number | null>(null),
+    currentTopicId: ref<number | null>(null),
     currentDraft: ref<TopicDraft | null>(null),
   }),
   getters: {
@@ -23,6 +26,9 @@ export const useComponentStore = defineStore('component', {
     },
     getCurrentCourseId(state) {
       return state.currentCourseId
+    },
+    getCurrentTopicId(state) {
+      return state.currentTopicId
     },
     getCurrentDraft(state) {
       return state.currentDraft
@@ -34,6 +40,9 @@ export const useComponentStore = defineStore('component', {
     },
     setCurrentCourseId(id: number) {
       this.currentCourseId = id
+    },
+    setCurrentTopicId(id: number) {
+      this.currentTopicId = id
     },
     setCurrentDraft(draft: TopicDraft | null) {
       this.currentDraft = draft
