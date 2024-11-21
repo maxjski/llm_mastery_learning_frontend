@@ -20,9 +20,14 @@ export const useTopicStore = defineStore('topic', {
     error: null,
     topicList: [],
     skillList: [],
+    currentSkill: null,
   }),
 
   actions: {
+    setCurrentSkill(skillId: number) {
+      this.currentSkill = skillId
+    },
+
     async fetchTopics(courseId: number) {
       this.loading = true
       try {
@@ -42,6 +47,8 @@ export const useTopicStore = defineStore('topic', {
 
     async fetchSkills(topicId: number) {
       this.skillList = await getSkills(topicId)
+      console.log('skill list at store ----------------------------')
+      console.log(this.skillList)
     },
 
     initializeNewTopic() {

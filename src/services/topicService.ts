@@ -90,5 +90,7 @@ export async function getSkills(topicId: number) {
       headers: getAuthHeaders(),
     },
   )
+
+  console.log(response.data)
   return response.data
 }

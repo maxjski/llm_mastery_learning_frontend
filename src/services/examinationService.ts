@@ -19,7 +19,7 @@ export async function generateExaminationDraft(topicId: number) {
     const response = await axios.post<ExaminationDraft>(
       `${API_URL}/examinations/draft`,
       {
-        topic_id: topicId,
+        skill_id: topicId,
       },
       {
         headers: getAuthHeaders(),

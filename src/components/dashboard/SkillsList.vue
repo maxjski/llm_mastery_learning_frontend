@@ -35,8 +35,8 @@ const createSkill = async () => {
 }
 
 const selectSkill = (id: number) => {
-  // TODO: Implement skill selection logic
-  console.log('Selected skill:', id)
+  topicStore.setCurrentSkill(id)
+  componentStore.setActiveComponent(ActiveComponentEnum.Examination)
 }
 
 const manageSkill = (id: number) => {

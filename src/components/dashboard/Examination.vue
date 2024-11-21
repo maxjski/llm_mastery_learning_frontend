@@ -2,17 +2,19 @@
 import { ref, onMounted } from 'vue'
 import { useExaminationStore } from '@/stores/examinationStore'
 import { useComponentStore } from '@/stores/componentStore'
+import { useTopicStore } from '@/stores/topicStore'
 import type { ExaminationAnswers } from '@/types'
 
 type Confidence = 'very high' | 'high' | 'medium' | 'low' | 'none'
 
 const examStore = useExaminationStore()
 const componentStore = useComponentStore()
+const topicStore = useTopicStore()
 const currentAnswers = ref<Record<number, string>>({})
 const confidenceLevels = ref<Record<number, Confidence>>({})
 
 onMounted(async () => {
-  await examStore.fetchQuestions(componentStore.getCurrentCourseId ?? 0)
+  await examStore.fetchQuestions(topicStore.currentSkill ?? 0)
   console.log('questions ----------------------------')
   console.log(examStore.getQuestions)
 })
