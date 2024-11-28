@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useExaminationStore } from '@/stores/examinationStore'
-import { useComponentStore } from '@/stores/componentStore'
+import { useComponentStore, ActiveComponentEnum } from '@/stores/componentStore'
 import { useTopicStore } from '@/stores/topicStore'
 import type { ExaminationAnswers } from '@/types'
 
@@ -12,11 +12,17 @@ const componentStore = useComponentStore()
 const topicStore = useTopicStore()
 const currentAnswers = ref<Record<number, string>>({})
 const confidenceLevels = ref<Record<number, Confidence>>({})
+const isLoading = ref(true)
+const showResults = ref(false)
 
 onMounted(async () => {
-  await examStore.fetchQuestions(topicStore.currentSkill ?? 0)
-  console.log('questions ----------------------------')
-  console.log(examStore.getQuestions)
+  try {
+    await examStore.fetchQuestions(topicStore.currentSkill ?? 0)
+    isLoading.value = false
+  } catch (error) {
+    console.error('Failed to fetch questions:', error)
+    isLoading.value = false
+  }
 })
 
 const submitAnswers = async () => {
@@ -37,7 +43,7 @@ const submitAnswers = async () => {
   }
 
   const answers: ExaminationAnswers = {
-    topic_id: componentStore.getCurrentCourseId ?? 0,
+    skill_id: topicStore.currentSkill ?? 0,
     answers: examStore.getQuestions.map(question => ({
       id: question.id,
       sub_skill_id: question.sub_skill_id,
@@ -55,10 +61,14 @@ const submitAnswers = async () => {
 
   try {
     await examStore.submitAnswers(answers)
-    // No need to capture explanations as they'll be in the store
+    showResults.value = true
   } catch (error) {
     alert('Failed to submit answers')
   }
+}
+
+const proceedToFollowUp = () => {
+  componentStore.setActiveComponent(ActiveComponentEnum.FollowUp)
 }
 </script>
 
@@ -69,7 +79,11 @@ const submitAnswers = async () => {
       <p>Please answer the following questions and rate your confidence.</p>
     </header>
 
-    <div class="questions-list">
+    <div v-if="isLoading" class="loading-state">
+      <p>Loading questions...</p>
+    </div>
+
+    <div v-else class="questions-list">
       <div
         v-for="question in examStore.getQuestions"
         :key="question.id"
@@ -134,13 +148,20 @@ const submitAnswers = async () => {
       </div>
     </div>
 
-    <button
-      class="submit-button"
-      @click="submitAnswers"
-      :disabled="examStore.isLoading"
-    >
-      {{ examStore.isLoading ? 'Submitting...' : 'Submit All Answers' }}
-    </button>
+    <div class="button-container">
+      <button
+        v-if="!showResults"
+        class="submit-button"
+        @click="submitAnswers"
+        :disabled="examStore.isLoading"
+      >
+        {{ examStore.isLoading ? 'Submitting...' : 'Submit Answers' }}
+      </button>
+
+      <button v-else class="submit-button" @click="proceedToFollowUp">
+        Continue to Follow-up
+      </button>
+    </div>
   </div>
 </template>
 
@@ -279,5 +300,17 @@ select:focus {
   font-size: 0.95rem;
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.8);
+}
+
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.button-container {
+  margin-top: 2rem;
 }
 </style>

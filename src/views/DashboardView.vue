@@ -5,6 +5,7 @@ import CoursesList from '@/components/dashboard/CoursesList.vue'
 import Examination from '@/components/dashboard/Examination.vue'
 import TopicsList from '@/components/dashboard/TopicsList.vue'
 import SkillsList from '@/components/dashboard/SkillsList.vue'
+import FollowUpChat from '@/components/dashboard/FollowUpChat.vue'
 import { useComponentStore, ActiveComponentEnum } from '@/stores/componentStore'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
@@ -74,6 +75,11 @@ const handleDraftGenerated = (draft: TopicDraft) => {
       />
       <SkillsList
         v-if="componentStore.getActiveComponent === ActiveComponentEnum.Skills"
+      />
+      <FollowUpChat
+        v-if="
+          componentStore.getActiveComponent === ActiveComponentEnum.FollowUp
+        "
       />
     </main>
   </div>

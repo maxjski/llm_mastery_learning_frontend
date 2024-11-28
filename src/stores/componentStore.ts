@@ -9,6 +9,7 @@ export enum ActiveComponentEnum {
   ReviseDeck = 'reviseDeck',
   EditDraft = 'editDraft',
   Examination = 'examination',
+  FollowUp = 'followUp',
   Topics = 'topics',
   Skills = 'skills',
 }

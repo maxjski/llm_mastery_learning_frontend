@@ -137,6 +137,6 @@ export interface ExaminationDraft {
 }
 
 export interface ExaminationAnswers {
-  topic_id: number
+  skill_id: number
   answers: QuestionAnswer[]
 }

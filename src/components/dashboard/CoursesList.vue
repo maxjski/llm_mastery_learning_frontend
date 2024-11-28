@@ -81,7 +81,7 @@ const deleteCourseHandler = async (courseId: number) => {
           <h3 class="course-title">{{ course.name }}</h3>
           <div class="course-actions">
             <button @click="selectCourse(course.id)" class="revise-btn">
-              Study
+              See Topics
             </button>
             <button @click="manageCourse(course.id)" class="manage-btn">
               Manage

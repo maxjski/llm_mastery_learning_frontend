@@ -89,7 +89,7 @@ const goBackToCourses = () => {
           <h3 class="topic-title">{{ topic.name }}</h3>
           <div class="topic-actions">
             <button @click="selectTopic(topic.id)" class="study-btn">
-              Study
+              See Skills
             </button>
             <button @click="manageTopic(topic.id)" class="manage-btn">
               Manage
